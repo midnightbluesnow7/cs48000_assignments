@@ -112,7 +112,7 @@ DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=operations_db
 DB_USER=postgres
-DB_PASSWORD=your_password
+DB_PASSWORD=postgres
 ```
 
 ### Step 5: Load Seed Data (Optional - for testing)
@@ -303,7 +303,7 @@ DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=operations_db
 DB_USER=postgres
-DB_PASSWORD=your_secure_password_here
+DB_PASSWORD=postgres
 
 # Data Source Directories (AC1: Automated Multi-Source Ingestion)
 PRODUCTION_LOGS_PATH=/path/to/data/sources/production_logs
