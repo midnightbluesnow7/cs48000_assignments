@@ -1,28 +1,34 @@
+# ADR 001: Selection of Tech Stack for OpsDashboard
+
 ## Title
-ADR 001: Tech Stack Selection for Campus Event Hub
+Selection of Primary Development Stack for SteelWorks Operations Data Portal
 
 ## Status
-Accepted
+**Accepted**
 
 ## Context
-The engineering team is building an internal web application for a campus event hub. The primary goals are to ship a functional product quickly while ensuring the stack is maintainable by student developers and compatible with modern AI coding assistants. We evaluated three potential stacks (Python/Streamlit, Spring Boot, and Node/Express) based on five key dimensions: AI Support Strength, Popularity & Community Answers, Ecosystem Maturity, Deployment Simplicity, and Path to Next Architecture.
-
-
+SteelWorks, LLC requires a centralized internal application to monitor real-time operations data, including inventory levels, shipping schedules, and factory floor sensor logs. As a junior engineer, I need a stack that balances:
+* **Speed of Delivery:** Getting a functional MVP into the hands of plant managers quickly.
+* **Data Centricity:** The ability to handle complex SQL queries and data visualizations effortlessly.
+* **Maintainability:** Leveraging AI-assisted coding to overcome solo-developer bottlenecks.
 
 ## Decision
-We will use **Stack C: Node.js + Express + Server-Rendered Views (EJS/Pug) + PostgreSQL**. This stack represents a "Swiss Army Knife" middle ground, offering high flexibility and a strong path to future architectural changes. It allows the team to transition to a modern frontend framework (like React or Next.js) later without discarding the backend logic.
+We will use **Stack A: Python + Streamlit + SQLAlchemy + PostgreSQL**.
+
+This decision is driven by the "Data-First" nature of our operations. Streamlit allows us to treat the UI as a script, effectively removing the "frontend vs. backend" friction that usually slows down small-scale internal projects. Python’s dominance in data processing makes it the natural fit for manufacturing analytics.
 
 ## Alternatives Considered
-* **Stack A (Python + Streamlit + SQLAlchemy + Postgres):** Considered for its incredible speed-to-market and high AI support. It was rejected because it offers a "Low" path to next architecture, making custom UI scaling difficult.
-* **Stack B (Spring Boot + Thymeleaf + JPA + PostgreSQL):** Considered for its enterprise-grade stability and maturity. It was rejected due to high boilerplate and a steeper learning curve for junior developers compared to JavaScript.
+* **Stack B (Spring Boot + Thymeleaf + JPA):** Rejected for this phase. While "industrial-strength," the configuration overhead and boilerplate code would delay our first release by weeks. It is better suited for high-transaction customer-facing portals than internal dashboards.
+* **Stack C (Node.js + Express + EJS):** A strong runner-up. However, building interactive data charts and tables in a traditional SSR (Server-Side Rendering) environment requires more manual DOM manipulation and CSS work than the Python/Streamlit ecosystem.
 
 ## Consequences
 
 ### Positive
-* **Unified Language:** Most campus developers are familiar with JavaScript, lowering the barrier for new contributors.
-* **Future Proofing:** Using Node.js/Express makes it easy to expose APIs for a mobile app or decoupled frontend in the future.
-* **AI Efficiency:** LLMs have massive training sets for Express.js, leading to high-quality code generation and faster debugging.
+* **Rapid Prototyping:** We can move from a database schema to a live, interactive dashboard in hours rather than days.
+* **High AI Efficiency:** LLMs are exceptionally good at writing Python scripts and SQLAlchemy models, which will act as a force multiplier for a junior dev.
+* **Lower Cognitive Load:** By staying entirely within the Python ecosystem, we avoid "context switching" between JavaScript (frontend) and Python/Java (backend).
 
 ### Negative
-* **JavaScript Fatigue:** The ecosystem moves quickly, requiring the team to be diligent about updating dependencies and managing the build pipeline.
-* **Template Limitations:** Server-rendered views (EJS/Pug) can feel dated compared to modern Single Page Applications (SPAs) for highly interactive features.
+* **UI Constraints:** Streamlit is opinionated. If the plant manager demands a highly bespoke, pixel-perfect layout that defies Streamlit’s grid system, we will hit a "wall."
+* **Scalability Ceiling:** If this tool eventually needs to support thousands of concurrent external users, we will likely need to rewrite the frontend in React or Vue.
+* **State Management:** Handling complex user states in Streamlit can be trickier than in a traditional MVC framework like Spring Boot.
