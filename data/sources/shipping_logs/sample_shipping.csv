@@ -1,7 +1,0 @@
-Lot ID,Ship Date,Destination State,Carrier,Qty Shipped,Status
-00001,2026-02-12,CA,FedEx,950,In Transit
-00003,2026-02-12,TX,UPS,800,In Transit
-00005,2026-02-13,NY,FedEx,1050,Delivered
-00007,2026-02-14,CA,UPS,600,Delivered
-00008,2026-02-15,IL,FedEx,950,In Transit
-00010,2026-02-15,TX,UPS,400,Delivered
