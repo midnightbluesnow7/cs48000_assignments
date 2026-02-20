@@ -1,60 +1,54 @@
-# Architecture Decision Record: Campus Event Hub Foundation
+# ADR 001: Architectural Foundation for SteelWorks Operations Data Hub
 
-## Title
-Standardizing a Monolithic Client-Server Architecture for the Campus Event Hub 
-
-**Status:** Accepted 
+## Status
+**Accepted**
 
 ---
 
 ## Context
+SteelWorks, LLC currently manages operational data across three disconnected spreadsheets: **Production Logs (CSV)**, **Quality Inspections (XLSX/CSV)**, and **Shipping Logs (XLSX)**. An Operations Analyst needs an integrated view to track Lot IDs, identify production errors, and verify shipment status without manual data merging.
 
-### System
-* **Purpose:** A centralized hub to manage event submissions, reviews, searches, and promotions for students.
+Key requirements include automated multi-source ingestion (AC 1), data normalization via composite keys (AC 2), integrated problem reporting (AC 3), and automated validation/exception handling (AC 4).
 
-### Users
-* Hundreds of student browsers, dozens of event organizers, and a few staff administrators.
 
-### Resource Constraints
-* Developed and maintained by a small team of **2–4 engineers** with a limited budget and low to moderate concurrent usage requirements.
-
-### Maintenance Goals
-* The system must be easy to extend with new features like email reminders without requiring major refactoring.
 
 ---
 
-## Decision
-To meet the requirements for simplicity and maintainability, the system will follow these five integrated architectural dimensions:
+## Decisions
+
+### 1. System Roles & Communication: Option A (Client–Server)
+
+* **Reasoning:** To meet the user story's requirement for "timely" answers and "immediate" status returns, a direct Request-Response model is ideal. The Client (Analyst's browser) makes a request, and the Server (SteelWorks API) queries the database to return the latest Production or Shipping status.
+* **Alternatives Considered:** **Option B (Event-Driven Architecture)** was considered but rejected because our data source is static spreadsheets rather than a high-frequency stream of IoT sensor data. Introducing a message broker like RabbitMQ would add unnecessary infrastructure complexity.
+* **Consequences (Positive):** Simple implementation, low latency for search queries, and easier debugging for a junior engineer.
+* **Consequences (Negative):** The server must be online for the client to function; it lacks the decoupled resilience of an event-based system.
+
+### 2. Deployment & Evolution: Option A (Monolith)
+
+* **Reasoning:** Since this is a "small, integrated web application," a monolith allows us to manage the ingestion, normalization, and UI logic in a single codebase. This makes it much easier to ensure that the "Cleansing Logic" (AC 2) is applied consistently across all three data sources before they are joined.
+* **Alternatives Considered:** **Option B (Microservices)** was rejected because the core requirement is "Data Consolidation." Splitting the app into separate "Production" and "Shipping" services would make performing the relational mapping (AC 2) and identifying inconsistencies (AC 4) significantly harder due to distributed data.
+* **Consequences (Positive):** Simplified deployment, easier cross-functional data joins, and lower infrastructure costs.
+* **Consequences (Negative):** If one component (like the XLSX parser) consumes too much memory, it could potentially slow down the entire dashboard for the user.
+
+### 3. Code Organization: Option A (Layered Architecture)
+
+* **Reasoning:** This structure allows us to isolate the "messy" work of AC 1 and AC 2. We can have a **Data Access Layer** dedicated to SharePoint ingestion, a **Service Layer** for the regex-based normalization (trimming zeros/standardizing dates), and a **Presentation Layer** for the AC 3 reporting visuals.
+* **Alternatives Considered:** **Option B (Feature-Based Architecture)** was considered but rejected. In this specific app, the "features" (Production, Quality, Shipping) are not independent—they are tightly coupled by the Lot ID. Splitting them into separate feature folders would lead to significant code duplication in the normalization logic.
+* **Consequences (Positive):** High maintainability; if the Quality team changes their file format, you only change the Data Access layer.
+* **Consequences (Negative):** Can lead to "sinkhole" patterns where simple requests must pass through multiple layers that don't add much logic.
+
+### 4. Data & State Ownership: Option A (Single Database)
+
+* **Reasoning:** A single relational database is the most effective way to handle the composite key (Lot ID + Date) required by AC 2. It allows for "Foreign Key" relationships that can automatically flag if a Lot exists in Shipping but is missing from Quality (AC 4) using simple SQL queries.
+* **Alternatives Considered:** **Option B (Database per Service)** was rejected. Because the Analyst needs an "integrated view," having data in separate databases would require "Application-Level Joins," which are significantly slower and harder to write than standard SQL joins.
+* **Consequences (Positive):** Strong data consistency, easy implementation of the "Search" function, and a single source of truth for "Source Health" timestamps.
+* **Consequences (Negative):** The database becomes a single point of failure; if it goes down, the entire application is offline.
 
 
 
-1.  **System Roles & Communication:** A **Client-Server model** where a web-based client interacts with a central server via an API.
-2.  **Deployment & Evolution:** A **Modular Monolith** to manage one codebase and one deployment pipeline while keeping code organized by function.
-3.  **Code Organization:** A **Layered Architecture** with distinct horizontal layers for Presentation, Business Logic, and Data Access.
-4.  **Data & State Ownership:** A **Single Relational Database** (e.g., PostgreSQL or MySQL) to handle highly relational event data with ACID compliance.
-5.  **Interaction Model:** **Synchronous request-response patterns** (REST or GraphQL) to provide immediate feedback for searches and submissions.
+### 5. Interaction Model: Option A (Synchronous)
 
----
-
-## Alternatives Considered
-
-* **Event-Driven Architecture (EDA):** Rejected because the overhead of managing message brokers and eventual consistency exceeds the needs of a small student hub.
-* **Microservices:** Rejected as it would introduce a "distributed systems tax," requiring complex service discovery and inter-service authentication that a team of 2–4 engineers cannot efficiently support.
-* **Feature-Based Organization:** Rejected in favor of the layered approach because horizontal layers are easier for junior engineers to navigate and ensure strict dependency rules.
-* **Database per Service:** Rejected as it complicates simple data joins (e.g., joining an event with its category) and requires complex data synchronization.
-* **Asynchronous Interaction:** Rejected because submitting or approving text-based events takes only milliseconds; adding queues would unnecessarily complicate the frontend and frustrate users.
-
----
-
-## Consequences
-
-### Positive
-* Provides a straightforward approach familiar to most developers, facilitating easier onboarding.
-* Lowers infrastructure costs and operational complexity by utilizing a single application server and database.
-* Ensures immediate data consistency for critical status changes like event approvals.
-* Enables independent testing of layers, satisfying the requirement for easy maintenance and future extensibility.
-
-### Negative
-* The entire system must be redeployed to update a single component.
-* A single database represents a single point of failure and a potential bottleneck if the user base grows significantly beyond expectations.
-* Synchronous requests block the client until a response is received, which may need adjustment if long-running tasks are added later.
+* **Reasoning:** The Analyst expects the "Search" function to return results "immediately." A synchronous model ensures that when the user searches for a Lot ID, the connection remains open until the data is fetched and displayed.
+* **Alternatives Considered:** **Option B (Asynchronous)** was considered for the daily data refresh (AC 1). While the *ingestion* could be async, the *interaction* for the Analyst needs to be sync to meet the "timely manner" requirement of the user story.
+* **Consequences (Positive):** Much simpler UI logic (no need for "Loading" spinners or "Job Complete" notifications) and a more intuitive user experience.
+* **Consequences (Negative):** If the spreadsheet files become massive (e.g., hundreds of thousands of rows), the "refresh on open" might cause the browser to hang or timeout.

@@ -1,21 +1,29 @@
-## Assumptions
-
-* This is an **internal university system**, not a public commercial product.
-* **Expected users:**
-    * **Hundreds** of students browsing events
-    * **Dozens** of event organizers submitting events
-    * A **small number** of staff administrators
-* Concurrent usage is **low to moderate**.
-* No strict **real-time** or **high-availability** requirements.
-* The system is developed and maintained by a **small team** (2–4 engineers).
-* Cloud hosting is available, but **budget and operational resources** are limited.
+## Assumptions and Scope
 
 ---
 
-## Out of Scope
+### **Assumptions**
 
-* Native mobile applications
-* Public APIs for external partners
-* Real-time chat or live streaming
-* Complex role-based permission systems
-* Advanced analytics or recommendation engines
+* **Assumption 1:** We assume all Excel files contain a **common key** (e.g., `Lot_ID`) that allows for relational mapping, even if the column names and key formats slightly differ.
+* **Assumption 2:** Instead of a live database, we assume the Excel files represent the **"Source of Truth"** (simulating an export from an older ERP system).
+
+---
+
+### **In Scope**
+
+* **Trend Identification:** Identifying whether the same defect type appears across multiple lots over time.
+* **Pattern Analysis:** Distinguishing recurring defect issues from one-off incidents.
+* **Data Aggregation:** Aggregating inspection data across daily and weekly inspection logs.
+* **Filtered Metrics:** Excluding non-defect inspection records (e.g., `Qty Defects = 0`) from defect occurrence counts.
+* **Data Gaps:** Indicating when available data is insufficient to determine recurrence.
+
+---
+
+### **Out of Scope**
+
+* **Deep Analysis:** Root cause analysis of defects.
+* **Advanced Modeling:** Predictive or AI-based quality analysis.
+* **Live Connectivity:** Real-time inspection or production monitoring.
+* **Data Governance:** Enforcement of data correctness at the source (e.g., preventing bad Excel entries).
+* **Security:** User authentication, authorization, or role-based access control.
+* **UI/UX Polish:** The dashboard needs to be functional and clean, but not a "pixel-perfect" consumer-grade design.
