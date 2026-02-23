@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "cs48000_assignments"
+version = "0.1.0"
+description = "A data integration and validation project for production, quality, and shipping records."
+authors = ["celin <your-email@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.14"
+# Add core dependencies
+ruff = "^0.15.2"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.urls]
+"Documentation" = "docs/"
+
+[[tool.poetry.packages]]
+# src is the main package directory
+include = "src"
+
+[tool.poetry.scripts]
+main = "main:main"
