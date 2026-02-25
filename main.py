@@ -1,7 +1,6 @@
 """Main entry point for SteelWorks Operations Data Hub."""
 
 
-
 def main() -> None:
     """
     Main entry point for the application.

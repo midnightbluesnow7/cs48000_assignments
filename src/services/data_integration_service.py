@@ -33,7 +33,9 @@ class DataIntegrationService:
         """
         ...
 
-    def get_composite_key(self, lot_code: str, production_date: date) -> tuple[str, date]:
+    def get_composite_key(
+        self, lot_code: str, production_date: date
+    ) -> tuple[str, date]:
         """Get composite key (lot_code, production_date)."""
         ...
 

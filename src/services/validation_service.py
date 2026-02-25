@@ -1,4 +1,3 @@
-
 """Validation Service for detecting data integrity issues and outliers."""
 
 from datetime import date

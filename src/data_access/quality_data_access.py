@@ -43,7 +43,9 @@ class QualityDataAccess(BaseDataAccess):
         """Get all quality records with a specific defect type."""
         ...
 
-    def get_defect_trend_by_type(self, start_date: date, end_date: date) -> dict[str, int]:
+    def get_defect_trend_by_type(
+        self, start_date: date, end_date: date
+    ) -> dict[str, int]:
         """
         Get defect count by type within a date range.
 
